@@ -1,1 +1,48 @@
+name: Painel Admin + Agente Python
 
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # compatível com Linux e fácil de migrar
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v3
+
+    # Node.js setup
+    - name: Configurar Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Instalar dependências Node.js
+      run: npm install
+
+    - name: Verificar tipos TypeScript
+      run: npx tsc --noEmit
+
+    - name: Build do painel
+      run: npm run build
+
+    # Python setup
+    - name: Configurar Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Instalar dependências Python
+      run: |
+        pip install Flask
+        pip install psutil
+
+    - name: Executar agente Python
+      run: python app.py
