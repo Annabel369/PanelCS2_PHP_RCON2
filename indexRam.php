@@ -1,4 +1,12 @@
 <?php
+// Inicia a sessão no início do arquivo.
+session_start();
+
+// Verifica se o usuário está logado. Se não, redireciona para a página de login.
+if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+    header("Location: login.php");
+    exit;
+}
 require_once 'rcon2.php';
 
 $cs2_rcon_host = '100.114.210.67';

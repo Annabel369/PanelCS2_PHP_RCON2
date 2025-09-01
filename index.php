@@ -1,7 +1,14 @@
 <?php
-// PHP para interagir com o agente Python e com a classe Rcon.php
+// Inicia a sessão no início do arquivo.
+session_start();
 
-// Inclua a classe Rcon
+// Verifica se o usuário está logado. Se não, redireciona para a página de login.
+if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+    header("Location: login.php");
+    exit;
+}
+
+// Inclui a classe Rcon
 require_once 'rcon2.php';
 
 // Configurações do seu servidor CS2
@@ -79,51 +86,50 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             break;
 
         case "rcon":
-    $command = $_POST["rcon_command_input"] ?? '';
-    if (!empty($command)) {
-        $rcon = new Rcon($cs2_rcon_host, $cs2_rcon_port, $cs2_rcon_password, $rcon_timeout);
-        if ($rcon->connect()) {
-            $response_rcon = $rcon->send_command($command);
-            if ($response_rcon !== false) {
-                // Sanitiza a resposta
-                $clean_response = trim(str_replace("\x01", '', $response_rcon));
+            $command = $_POST["rcon_command_input"] ?? '';
+            if (!empty($command)) {
+                $rcon = new Rcon($cs2_rcon_host, $cs2_rcon_port, $cs2_rcon_password, $rcon_timeout);
+                if ($rcon->connect()) {
+                    $response_rcon = $rcon->send_command($command);
+                    if ($response_rcon !== false) {
+                        // Sanitiza a resposta
+                        $clean_response = trim(str_replace("\x01", '', $response_rcon));
 
-                // Define ícone com base no conteúdo
-                $is_success = stripos($clean_response, 'sucesso') !== false;
-                // Detecta sucesso com base no tipo de comando
-				if (stripos($command, 'status') !== false) {
-				$icon = '📊'; // ícone neutro para status
-				} elseif (stripos($clean_response, 'sucesso') !== false) {
-				$icon = '✅';
-				} elseif (stripos($clean_response, 'uso:') !== false || stripos($clean_response, 'erro') !== false) {
-				$icon = '❌';
-				} else {
-				$icon = 'ℹ️'; // ícone genérico para resposta informativa
-			}
+                        // Define ícone com base no conteúdo
+                        $is_success = stripos($clean_response, 'sucesso') !== false;
+                        // Detecta sucesso com base no tipo de comando
+                        if (stripos($command, 'status') !== false) {
+                            $icon = '📊'; // ícone neutro para status
+                        } elseif (stripos($clean_response, 'sucesso') !== false) {
+                            $icon = '✅';
+                        } elseif (stripos($clean_response, 'uso:') !== false || stripos($clean_response, 'erro') !== false) {
+                            $icon = '❌';
+                        } else {
+                            $icon = 'ℹ️'; // ícone genérico para resposta informativa
+                        }
 
-                // Monta mensagem final
-                $output_message = "Comando RCON enviado: `{$command}`<br>Resposta: <pre>{$icon} " . htmlspecialchars($clean_response) . "</pre>";
+                        // Monta mensagem final
+                        $output_message = "Comando RCON enviado: `{$command}`<br>Resposta: <pre>{$icon} " . htmlspecialchars($clean_response) . "</pre>";
+                    } else {
+                        $output_message = "<span style='color: red;'>Erro ao enviar comando: " . htmlspecialchars($rcon->get_response()) . "</span>";
+                    }
+                    $rcon->disconnect();
+                } else {
+                    $output_message = "<span style='color: red;'>Falha ao conectar ao RCON.</span>";
+                }
             } else {
-                $output_message = "<span style='color: red;'>Erro ao enviar comando: " . htmlspecialchars($rcon->get_response()) . "</span>";
+                $output_message = "Por favor, digite um comando RCON.";
             }
-            $rcon->disconnect();
-        } else {
-            $output_message = "<span style='color: red;'>Falha ao conectar ao RCON.</span>";
-        }
-    } else {
-        $output_message = "Por favor, digite um comando RCON.";
-    }
-    break;
+            break;
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="icon" href="./favicon.png" type="image/png">
+    <link rel="icon" href="./favicon.png" type="image/png">
     <title>Gerenciar Counter-Strike 2</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #222; color: #fff; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
@@ -139,9 +145,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </style>
 </head>
 <body>
+    <div style="text-align: right; margin-bottom: 15px;">
+        <button onclick="window.location.href='logout.php'" style="width: auto;">Sair</button>
+    </div>
+
     <div class="imagem-container">
         <img src="Counter-Strike 2 - W.png" alt="Counter-Strike 2">
     </div>
+    
     <div class="container">
         <h2>Gerenciar Counter-Strike 2</h2>
         <form method="POST">
@@ -156,24 +167,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <form method="POST">
             <input type="text" name="rcon_command_input" placeholder="Ex: status">
             <button type="submit" name="cs2_command_action" value="rcon">Executar Comando RCON</button>
-			
         </form>
-		
-		<!-- Botão para entrar no servidor via Steam -->
-<a href="steam://connect/<?php echo $cs2_rcon_host . ':' . $cs2_rcon_port; ?>">
-    <button type="button">Entra no servidor</button>
-</a>
-
-
-
+        
+        <!-- Botão para entrar no servidor via Steam -->
+        <a href="steam://connect/<?php echo $cs2_rcon_host . ':' . $cs2_rcon_port; ?>">
+            <button type="button">Entrar no servidor</button>
+        </a>
 
         <div class="output">
             <?php echo $output_message; ?>
         </div>
     </div>
-	
-	<footer style="margin-top: 40px; font-size: 0.85em; color: #666;">
-    © 2025 — Criado por Amauri Bueno dos Santos com apoio da Copilot. Código limpo, servidor afiado.
-</footer>
+    
+    <footer style="margin-top: 40px; font-size: 0.85em; color: #666;">
+        © 2025 — Criado por Amauri Bueno dos Santos com apoio da Copilot. Código limpo, servidor afiado.
+    </footer>
 </body>
 </html>
