@@ -8,6 +8,25 @@
 <img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/0c7ce722-14cc-48e7-afc1-b5c033d8a87f" />
 
 Control Panel for CS2 Servers
+
+<img width="622" height="477" alt="image" src="https://github.com/user-attachments/assets/ecf887e4-4a01-4520-81bc-c7359f2dd560" />
+
+<img width="626" height="472" alt="image" src="https://github.com/user-attachments/assets/f89fc03a-b8fd-4f24-8507-4dc866022856" />
+
+
+<img width="1911" height="636" alt="image" src="https://github.com/user-attachments/assets/0bf3690d-7c6a-4f8a-b459-12c389c4ac2f" />
+
+C:\Python313\python.exe
+C:\Apache24\htdocs\Counter-Strike_agent\app.py
+
+C:\steamcmd
+
+C:\cs2-ds\game\csgo
+
+
+
+
+
 This project is a lightweight and secure control panel, designed to remotely manage Counter-Strike 2 (CS2) servers via RCON. The panel includes user authentication features, registration control, and a user-friendly interface to send commands to the server.
 
 Core Features
