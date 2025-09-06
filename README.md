@@ -4,6 +4,72 @@
     pip install psutil
 
     python app.py
+
+🛠️ CS2 Control Panel — Tutorial de Instalação e Uso
+Este projeto é um painel leve e seguro para gerenciar servidores Counter-Strike 2 (CS2) via RCON. Ele inclui autenticação de usuários, controle de registro e uma interface amigável para enviar comandos ao servidor.
+
+#🚀 Caminhos de instalação
+
+		C:\Python313\python.exe C:\Apache24\htdocs\Counter-Strike_agent\app.py
+		C:\steamcmd
+		C:\cs2-ds\game\csgo
+
+
+
+#✨ Funcionalidades principais
+• 	🔐 Login e Registro de Usuários
+			Autenticação segura com senhas criptografadas (hashing). Registro pode ser ativado/desativado por administradores.
+• 	🔒 Acesso Protegido
+			A página principal () exige login via sessão. Usuários não autenticados são redirecionados para .
+• 	🎮 Conexão RCON
+			Envie comandos RCON ao servidor CS2. A interface exibe respostas com ícones de sucesso ✅, erro ❌ e informação ℹ️.
+• 	🗄️ Banco de Dados Integrado
+			Conecta-se a um banco MySQL para gerenciar usuários. A tabela  é criada automaticamente se não existir.
+• 	🌍 Internacionalização (i18n)
+			Detecta o idioma do navegador e exibe mensagens em português ou inglês usando arquivos  e .
+• 	📱 Design Responsivo e Moderno
+			Layout otimizado para login e painel, com visual consistente e adaptável.
+	
+# 🧩 Estrutura do Projeto
+<img width="708" height="441" alt="image" src="https://github.com/user-attachments/assets/f81e5a2c-e5e1-43cf-8472-914995a3c0db" />
+
+
+⚙# ️ Configuração e Uso
+1️⃣ Configure o Banco de Dados
+
+
+
+
+Edite o arquivo  com suas credenciais MySQL:
+
+			$host = 'localhost';
+			$db   = 'cs2_panel';
+			$user = 'seu_usuario';
+			$pass = 'sua_senha';
+
+2️⃣ Ative o Registro de Usuários
+No mesmo arquivo, defina:
+
+
+3️⃣ Acesse o Painel
+Abra o navegador e acesse:
+
+
+#💬 Comentários Importantes
+
+📌 Segurança: Use HTTPS e proteja o acesso ao painel com firewall e autenticação forte.
+
+
+📌 Atualizações: Mantenha o SteamCMD e o servidor CS2 atualizados via botão "Atualizar Servidor" no painel.
+
+
+📌 Expansão: O painel pode ser estendido com gráficos de uso, logs, notificações e controle de múltiplos servidores.
+
+
+
+
+
+Se quiser que eu gere um  com esse conteúdo ou crie uma versão visual para documentação online, posso te ajudar com isso também. Quer transformar esse tutorial em uma página HTML estilizada ou PDF para distribuição?
     
 <img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/0c7ce722-14cc-48e7-afc1-b5c033d8a87f" />
 
