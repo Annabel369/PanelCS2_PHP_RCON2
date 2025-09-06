@@ -16,18 +16,25 @@ Este projeto é um painel leve e seguro para gerenciar servidores Counter-Strike
 
 
 
-#✨ Funcionalidades principais
+# ✨ Funcionalidades principais
 • 	🔐 Login e Registro de Usuários
+
+
 			Autenticação segura com senhas criptografadas (hashing). Registro pode ser ativado/desativado por administradores.
 • 	🔒 Acesso Protegido
+
 			A página principal () exige login via sessão. Usuários não autenticados são redirecionados para .
 • 	🎮 Conexão RCON
+
 			Envie comandos RCON ao servidor CS2. A interface exibe respostas com ícones de sucesso ✅, erro ❌ e informação ℹ️.
 • 	🗄️ Banco de Dados Integrado
+
 			Conecta-se a um banco MySQL para gerenciar usuários. A tabela  é criada automaticamente se não existir.
 • 	🌍 Internacionalização (i18n)
+
 			Detecta o idioma do navegador e exibe mensagens em português ou inglês usando arquivos  e .
 • 	📱 Design Responsivo e Moderno
+
 			Layout otimizado para login e painel, com visual consistente e adaptável.
 	
 # 🧩 Estrutura do Projeto
