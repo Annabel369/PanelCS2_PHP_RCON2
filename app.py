@@ -1,4 +1,4 @@
-# app.py - Agente Python para gerenciar o servidor CS2 no Windows
+# app.py
 
 from flask import Flask, jsonify, request
 import subprocess
@@ -7,62 +7,35 @@ import os
 import psutil
 import time
 
-# O CS2 não usa o protocolo RCON do Minecraft.
-# Portanto, a biblioteca 'mcrcon' deve ser removida ou substituída.
-# Vamos remover esta importação, pois o controle de console do CS2
-# pode ser feito de forma diferente ou desnecessário para o status.
-# from mcrcon import MCRcon
-
-# Importa as configurações do arquivo config.py.
 from config import (
     RCON_HOST, RCON_PORT, RCON_PASSWORD,
     CS2_START_COMMAND, AGENT_PORT,
-    CS2_SERVER_DIR
+    CS2_SERVER_DIR, STEAMCMD_PATH,
+    STEAMCMD_INSTALL_DIR, STEAM_APP_ID
 )
 
-# Configuração do logging.
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Cria a instância do aplicativo Flask.
 app = Flask(__name__)
-server_process = None
-
-# --- Funções para Gerenciamento de Processos no Windows ---
 
 def find_cs2_process():
-    """
-    Tenta encontrar o processo do servidor CS2 em execução.
-    Ele procura por um processo chamado 'cs2.exe'.
-    Retorna o objeto do processo (psutil) se encontrado, caso contrário, retorna None.
-    """
     for proc in psutil.process_iter(['pid', 'name']):
         try:
-            # Verifica se o nome do processo é 'cs2.exe' (case-insensitive)
-            if 'cs2.exe' == proc.info['name'].lower():
-                logging.info(f"Processo do servidor encontrado: PID {proc.info['pid']}")
+            if proc.info['name'] and 'cs2.exe' in proc.info['name'].lower():
+                logging.info(f"Processo CS2 encontrado: PID {proc.info['pid']}")
                 return proc
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            pass
+            continue
     return None
-
-# A função is_rcon_ready() foi removida, pois ela é específica do protocolo
-# RCON do Minecraft e não se aplica ao CS2 da mesma forma.
-# A rota rcon_command também será removida ou ajustada.
-
-# --- Rotas (Endpoints) para o Agente ---
 
 @app.route('/start_server', methods=['POST'])
 def start_server():
-    """
-    Endpoint para iniciar o servidor CS2.
-    """
     if find_cs2_process():
-        return jsonify({'success': False, 'error': 'O servidor já está rodando.'}), 409
+        return jsonify({'success': False, 'error': 'Servidor já está rodando.'}), 409
 
     try:
-        logging.info(f"Tentando iniciar servidor com comando: {CS2_START_COMMAND}")
-        
-        server_process = subprocess.Popen(
+        logging.info(f"Iniciando servidor com comando: {CS2_START_COMMAND}")
+        subprocess.Popen(
             CS2_START_COMMAND,
             cwd=CS2_SERVER_DIR,
             shell=True,
@@ -71,61 +44,83 @@ def start_server():
         time.sleep(2)
         return jsonify({'success': True, 'message': 'Servidor iniciado com sucesso.'})
     except Exception as e:
-        logging.error(f"Erro inesperado ao iniciar servidor: {e}")
+        logging.error(f"Erro ao iniciar servidor: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/stop_server', methods=['POST'])
 def stop_server():
-    """
-    Endpoint para parar o servidor CS2.
-    """
     process = find_cs2_process()
     if not process:
-        return jsonify({'success': False, 'error': 'O servidor não está rodando.'}), 404
+        return jsonify({'success': False, 'error': 'Servidor não está rodando.'}), 404
 
     try:
-        logging.info(f"Parando processo do servidor com PID: {process.pid}")
+        logging.info(f"Parando servidor com PID: {process.pid}")
         process.terminate()
         process.wait(timeout=10)
         return jsonify({'success': True, 'message': 'Servidor parado com sucesso.'})
     except Exception as e:
-        logging.error(f"Erro ao parar o servidor: {e}")
-        return jsonify({'success': False, 'error': 'Erro ao parar o servidor: ' + str(e)}), 500
+        logging.error(f"Erro ao parar servidor: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/server_status', methods=['GET'])
 def server_status():
-    """
-    Endpoint para verificar o status do servidor CS2, incluindo uso de RAM.
-    """
     process = find_cs2_process()
     is_running = process is not None
-    status = 'Rodando' if is_running else 'Parado'
     ram_usage = 'N/A'
-    
+
     if is_running:
         try:
             ram_usage_mb = process.memory_info().rss / (1024 * 1024)
             ram_usage = f"{ram_usage_mb:.2f} MB"
-            
         except (psutil.NoSuchProcess, psutil.AccessDenied):
-            status = 'Erro de Acesso'
             is_running = False
-            
-    logging.info(f"Status verificado: {status}, Uso de RAM: {ram_usage}")
-    
-    return jsonify({
-        'success': True, 
-        'status': status, 
-        'is_running': is_running,
-        'ram_usage': ram_usage,
-        # 'is_ready' não se aplica da mesma forma que no Minecraft e foi removido.
-    }), 200
 
-# Esta rota foi removida, pois a 'mcrcon' do Minecraft não funciona com CS2.
-# O controle de console do CS2, se necessário, exigiria uma implementação diferente.
-# @app.route('/rcon_command', methods=['POST'])
-# def rcon_command():
-#    ... (código removido)
+    return jsonify({
+        'success': True,
+        'status': 'Rodando' if is_running else 'Parado',
+        'is_running': is_running,
+        'ram_usage': ram_usage
+    })
+
+@app.route('/update_server', methods=['POST'])
+def update_server():
+    steamcmd_command = [
+        STEAMCMD_PATH,
+        '+force_install_dir', STEAMCMD_INSTALL_DIR,
+        '+login', 'anonymous',
+        '+app_set_config', STEAM_APP_ID,
+        '+app_update', STEAM_APP_ID,
+        '+quit'
+    ]
+
+    try:
+        logging.info("Atualizando servidor CS2 via SteamCMD...")
+        process = subprocess.Popen(
+            steamcmd_command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            shell=True
+        )
+
+        output_lines = []
+        while True:
+            line = process.stdout.readline()
+            if not line and process.poll() is not None:
+                break
+            if line:
+                decoded_line = line.decode('latin1').strip()  # Corrige acentuação
+                logging.info(f"SteamCMD: {decoded_line}")
+                output_lines.append(decoded_line)
+
+        return jsonify({
+            'success': True,
+            'output': output_lines,
+            'message': 'Atualização concluída.'
+        })
+
+    except Exception as e:
+        logging.error(f"Erro na atualização: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=AGENT_PORT)
